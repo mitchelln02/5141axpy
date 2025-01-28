@@ -52,28 +52,25 @@ void axpy_kernel_threading(int N, REAL *Y, REAL *X, REAL a, int num_threads) {
     pthread_t threads[num_threads];
     ThreadData thread_data[num_threads];
 
-    // Determine chunk size
     int chunk_size = (N + num_threads - 1) / num_threads;  // Ensure all elements are covered
 
     for (int t = 0; t < num_threads; ++t) {
-        // Calculate the start and end indices for each thread
         thread_data[t].start = t * chunk_size;
         thread_data[t].end = (t + 1) * chunk_size;
         if (thread_data[t].end > N) {
-            thread_data[t].end = N;  // Ensure no overflow
+            thread_data[t].end = N;
         }
         thread_data[t].Y = Y;
         thread_data[t].X = X;
         thread_data[t].a = a;
 
-        // Create thread
         if (pthread_create(&threads[t], NULL, axpy_thread, &thread_data[t]) != 0) {
             fprintf(stderr, "Error creating thread %d\n", t);
             exit(1);
         }
     }
 
-    // Wait for all threads to finish
+
     for (int t = 0; t < num_threads; ++t) {
         if (pthread_join(threads[t], NULL) != 0) {
             fprintf(stderr, "Error joining thread %d\n", t);
